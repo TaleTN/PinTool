@@ -21,7 +21,7 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 	if (!hMutex || GetLastError() == ERROR_ALREADY_EXISTS) return 1;
 
 	HWND hWnd = NULL;
-	DWORD delay = 1000, timer = 0;
+	DWORD delay = 100, timer = 0;
 	static const DWORD timeout = 30*1000;
 
 	for (int idx = 0; timer < timeout;)
@@ -32,12 +32,13 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 		if (!hWnd)
 		{
 			hWnd = FindWindowA("Credential Dialog Xaml Host", NULL);
+			if (hWnd) delay = 1000;
 		}
 		else if (idx < len)
 		{
-			const int c = pin[idx];
+			const int c = pin[idx++];
 			PostMessageA(hWnd, WM_CHAR, c, (c << 16) | 1);
-			if (!idx++) delay = 250;
+			delay = 250;
 		}
 		else
 		{
