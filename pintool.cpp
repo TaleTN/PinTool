@@ -4,6 +4,8 @@
 // as published by Sam Hocevar. See http://www.wtfpl.net/ for more details.
 
 #include <windows.h>
+
+#include <stdio.h>
 #include <string.h>
 
 #pragma comment(lib, "user32.lib")
@@ -17,10 +19,9 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 	while (len && pin[len - 1] == ' ') len--;
 	if (!len) return 1;
 
-	HANDLE const hMutex = CreateMutexA(NULL, FALSE, "2b93b074-0703-42ee-9916-bb0d0e3fbc98");
-	if (!hMutex || GetLastError() == ERROR_ALREADY_EXISTS) return 1;
-
 	HWND hWnd = NULL;
+	HANDLE hMutex = NULL;
+
 	DWORD delay = 100, timer = 0;
 	static const DWORD timeout = 30*1000;
 
@@ -32,7 +33,15 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 		if (!hWnd)
 		{
 			hWnd = FindWindowA("Credential Dialog Xaml Host", NULL);
-			if (hWnd) delay = 1000;
+			if (hWnd)
+			{
+				char name[256];
+				_snprintf_s(name, sizeof(name), sizeof(name), "2b93b074-0703-42ee-9916-bb0d0e3fbc98_%p", hWnd);
+
+				hMutex = CreateMutexA(NULL, FALSE, name);
+				if (!hMutex || GetLastError() == ERROR_ALREADY_EXISTS) return 1;
+				delay = 1000;
+			}
 		}
 		else if (idx < len)
 		{
@@ -49,6 +58,6 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 		}
 	}
 
-	ReleaseMutex(hMutex);
+	CloseHandle(hMutex);
 	return timer >= timeout;
 }
