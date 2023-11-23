@@ -42,7 +42,7 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 		}
 		else
 		{
-			const UINT enter = MapVirtualKeyA(VK_RETURN, MAPVK_VK_TO_VSC);
+			const UINT enter = MapVirtualKeyA(VK_RETURN, /* MAPVK_VK_TO_VSC */ 0);
 			PostMessageA(hWnd, WM_KEYDOWN, VK_RETURN, (enter << 16) | 1);
 			PostMessageA(hWnd, WM_KEYUP, VK_RETURN, ((KF_UP | KF_REPEAT | enter) << 16) | 1);
 			break;
