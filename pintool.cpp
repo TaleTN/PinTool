@@ -24,8 +24,9 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 
 	DWORD delay = 100, timer = 0;
 	static const DWORD timeout = 30*1000;
+	static const int numTries = 2;
 
-	for (int idx = 0; timer < timeout;)
+	for (int idx = 0, tries = 0; timer < timeout;)
 	{
 		Sleep(delay);
 		timer += delay;
@@ -43,6 +44,14 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 				delay = 1000;
 			}
 		}
+		else if (!IsWindow(hWnd))
+		{
+			break;
+		}
+		else if (idx < 0) // Waiting before retrying...
+		{
+			idx++;
+		}
 		else if (idx < len)
 		{
 			const int c = pin[idx++];
@@ -54,10 +63,15 @@ int APIENTRY WinMain(HINSTANCE const hInst, HINSTANCE const hPrevInst, LPSTR con
 			const UINT enter = MapVirtualKeyA(VK_RETURN, /* MAPVK_VK_TO_VSC */ 0);
 			PostMessageA(hWnd, WM_KEYDOWN, VK_RETURN, (enter << 16) | 1);
 			PostMessageA(hWnd, WM_KEYUP, VK_RETURN, ((KF_UP | KF_REPEAT | enter) << 16) | 1);
-			break;
+
+			if (++tries >= numTries) break;
+			timer = 0;
+
+			// Retry if dialog is still around in 30*100 ms.
+			idx = -30; delay = 100;
 		}
 	}
 
-	CloseHandle(hMutex);
-	return timer >= timeout;
+	if (hMutex) CloseHandle(hMutex);
+	return 0;
 }
